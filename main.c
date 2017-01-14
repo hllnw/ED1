@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 // Definição do tipo para as rotas.
 typedef struct positionRegister route;
@@ -26,8 +27,20 @@ int PrintMap(map16 m) {
 }
 
 //Preenche o mapa com obstáculos
-int PopulateMap (map16 m) {
-    return 0;
+map16 PopulateMap (map16 m, int qty) {
+	srand(time(NULL)); //gera a seed do rng
+	for (int i = 0; i < qty; i++){
+		int x = rand()%17; //coordenada aleatoria x entre 0 e 16
+		int y = rand()%17; //coordenada aleatoria y entre 0 e 16
+		if (((x == m.startingX) && (y == m.startingY)) || ((x == m.goalX) && (y == m.goalY)) || (m.grid[x][y] == 1)) {
+			i -= 1;
+			continue;
+		}
+		else {
+		m.grid[x][y] = 1; //ocupa a coordenada com um obstaculo
+		}
+	}
+    return m; //retorna mapa preenchido
 }
 
 //Reservado para o Menu.
@@ -104,11 +117,26 @@ int main()
     //Cria o cabeçário da rota.
     route* routeHead = (route*) malloc(sizeof(route));
     routeHead->next = NULL;
-
+	
+	//Cria o mapa
+	map16 map;
+	for (int i = 0; i<16;i++){
+		for (int p = 0; p<16;p++){
+			map.grid[i][p] = 0;
+		}
+	}
     //DEBUGS
-   printf("%d",AddPositionToRoute(routeHead,12,11));
-   printf("%d",AddPositionToRoute(routeHead,12,11));
-   printf("%d",sizeof(route));
+   //printf("%d",AddPositionToRoute(routeHead,12,11));
+   //printf("%d",AddPositionToRoute(routeHead,12,11));
+   //printf("%d",sizeof(route));
+   map = PopulateMap(map, 40);
+
+   for (int i = 0; i<16;i++){
+		for (int p = 0; p<16;p++){
+			printf("%d ", map.grid[i][p]);
+		}
+		printf("\n");
+	}
     return 0;
 }
 
