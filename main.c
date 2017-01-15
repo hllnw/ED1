@@ -100,6 +100,19 @@ int AddPositionToRoute(route* r,int x, int y) {
 
 //Leitor de rotas (exibir a estrutura no console)
 void PrintRoute(route* r) {
+    printf("Impressao de rota: \n");
+    int i = 0;
+    route* sweep;
+    if (r->next != NULL) {
+        sweep = r->next;
+        while (sweep->next != NULL) {
+            printf("[%d,%d] \n",sweep->position[0],sweep->position[1]);
+            sweep = sweep->next;
+        }
+        printf("[%d,%d] - FIM DA ROTA \n",sweep->position[0],sweep->position[1]);
+    } else {
+        printf("A rota especificada nao possui posicoes validas");
+    }
 
 }
 
@@ -122,6 +135,7 @@ void ReadRouteInFile() {
 //idéia: compara posição atual com a posição do destino. (x,y). E tenta se mover naquela direção, 1 step por vez.
 //utiliza as funções acima
 int PlotRoute(route* r, map16 m) {
+
     return 0;
 }
 
@@ -133,14 +147,18 @@ int main()
     route* routeHead = (route*) malloc(sizeof(route));
     routeHead->next = NULL;
 
-	//Cria o mapa
-	map16 map;
-    //DEBUGS
-   //printf("%d",AddPositionToRoute(routeHead,12,11));
-   //printf("%d",AddPositionToRoute(routeHead,12,11));
-   //printf("%d",sizeof(route));
-   map = PopulateMap(map, 40);
-   PrintMap(map);
+    //debugzinho
+    AddPositionToRoute(routeHead,12,14);
+    AddPositionToRoute(routeHead,13,2);
+    AddPositionToRoute(routeHead,13,2);
+    AddPositionToRoute(routeHead,13,2);
+    PrintRoute(routeHead);
+
+    //Cria o mapa
+    map16 map = PopulateMap(map, 40);
+    PrintMap(map);
+    printf("\n");
+
 
     return 0;
 }
