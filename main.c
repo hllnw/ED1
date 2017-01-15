@@ -1,3 +1,5 @@
+//TESTANDO
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -23,13 +25,35 @@ struct positionRegister {
 
 //Printar o mapa, retorna a quantidade de obstáculos?
 int PrintMap(map16 m) {
+    int i = 0;
+    for ( i = 0; i<16;i++){
+        int p = 0;
+		for ( p = 0; p<16;p++){
+			printf("%d ", m.grid[i][p]);
+		}
+		printf("\n");
+	}
     return 0;
 }
 
 //Preenche o mapa com obstáculos
 map16 PopulateMap (map16 m, int qty) {
+    //hardcode das coordenadas einiciais e finais.
+    m.startingX = 5;
+    m.startingY = 5;
+    m.goalX = 15;
+    m.goalY = 15;
+
+    //preenche o mapa de 0 antes de aplicar os obstáculos
+    int i = 0;
+	for (i = 0; i<16;i++){
+        int p = 0;
+		for (p = 0; p<16;p++){
+			m.grid[i][p] = 0;
+		}
+	}
 	srand(time(NULL)); //gera a seed do rng
-	for (int i = 0; i < qty; i++){
+	for (i = 0; i < qty; i++){
 		int x = rand()%17; //coordenada aleatoria x entre 0 e 16
 		int y = rand()%17; //coordenada aleatoria y entre 0 e 16
 		if (((x == m.startingX) && (y == m.startingY)) || ((x == m.goalX) && (y == m.goalY)) || (m.grid[x][y] == 1)) {
@@ -82,6 +106,19 @@ int AddPositionToRoute(route* r,int x, int y) {
 
 //Leitor de rotas (exibir a estrutura no console)
 void PrintRoute(route* r) {
+    printf("Impressao de rota: \n");
+    int i = 0;
+    route* sweep;
+    if (r->next != NULL) {
+        sweep = r->next;
+        while (sweep->next != NULL) {
+            printf("[%d,%d] \n",sweep->position[0],sweep->position[1]);
+            sweep = sweep->next;
+        }
+        printf("[%d,%d] - FIM DA ROTA \n",sweep->position[0],sweep->position[1]);
+    } else {
+        printf("A rota especificada nao possui posicoes validas");
+    }
 
 }
 
@@ -100,15 +137,44 @@ void ReadRouteInFile() {
 
 }
 
+
+
 //Funções de Pathfinding (por enquanto uma só!)
 //idéia: compara posição atual com a posição do destino. (x,y). E tenta se mover naquela direção, 1 step por vez.
 //utiliza as funções acima
 int PlotRoute(route* r, map16 m) {
+
+    //inicializa as coordenadas locais
+    int currentPos[2] = {m.startingX,m.startingY};
+    int goal[2] = {m.goalX,m.goalY};
+    int distance[2] = {0,0};
+    int movementVec[2] = {0,0};
+    int normalizedDistanceOnX, normalizedDistanceOnY;
+
+    while (currentPos != goal) {
+        distance[0] = goal[0]-currentPos[0];
+        distance[1] = goal[1]-currentPos[1];
+        //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
+
+
+        //Pegar a maior distância e calcular a direção ideal (movement Vec)
+            if (distance[0] < 0) {
+                normalizedDistanceOnX =  distance[0]*(-1);
+            }
+            if (distance[1] < 0) {
+                normalizedDistanceOnY =  distance[1]*(-1);
+            }
+            if (normalizedDistanceOnX >= normalizedDistanceOnY) {
+                movementVec[0] = (distance[0]/distance[0]);
+                movementVec[1] = 0;
+            } else {
+                movementVec[0] = 0;
+                movementVec[1] = (distance[1]/distance[1]);
+            }
+        //Realmente andar
+    }
     return 0;
 }
-
-
-
 
 
 //Loop Principal
@@ -117,26 +183,20 @@ int main()
     //Cria o cabeçário da rota.
     route* routeHead = (route*) malloc(sizeof(route));
     routeHead->next = NULL;
-	
-	//Cria o mapa
-	map16 map;
-	for (int i = 0; i<16;i++){
-		for (int p = 0; p<16;p++){
-			map.grid[i][p] = 0;
-		}
-	}
-    //DEBUGS
-   //printf("%d",AddPositionToRoute(routeHead,12,11));
-   //printf("%d",AddPositionToRoute(routeHead,12,11));
-   //printf("%d",sizeof(route));
-   map = PopulateMap(map, 40);
 
-   for (int i = 0; i<16;i++){
-		for (int p = 0; p<16;p++){
-			printf("%d ", map.grid[i][p]);
-		}
-		printf("\n");
-	}
+    //debugzinho
+    AddPositionToRoute(routeHead,12,14);
+    AddPositionToRoute(routeHead,13,2);
+    AddPositionToRoute(routeHead,13,2);
+    AddPositionToRoute(routeHead,13,2);
+    PrintRoute(routeHead);
+
+    //Cria o mapa
+    map16 map = PopulateMap(map, 40);
+    PrintMap(map);
+    printf("\n");
+
+    PlotRoute(routeHead,map);
     return 0;
 }
 
