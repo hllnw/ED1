@@ -38,6 +38,12 @@ int PrintMap(map16 m) {
 
 //Preenche o mapa com obstáculos
 map16 PopulateMap (map16 m, int qty) {
+    //hardcode das coordenadas einiciais e finais.
+    m.startingX = 5;
+    m.startingY = 5;
+    m.goalX = 15;
+    m.goalY = 15;
+
     //preenche o mapa de 0 antes de aplicar os obstáculos
     int i = 0;
 	for (i = 0; i<16;i++){
@@ -131,11 +137,42 @@ void ReadRouteInFile() {
 
 }
 
+
+
 //Funções de Pathfinding (por enquanto uma só!)
 //idéia: compara posição atual com a posição do destino. (x,y). E tenta se mover naquela direção, 1 step por vez.
 //utiliza as funções acima
 int PlotRoute(route* r, map16 m) {
 
+    //inicializa as coordenadas locais
+    int currentPos[2] = {m.startingX,m.startingY};
+    int goal[2] = {m.goalX,m.goalY};
+    int distance[2] = {0,0};
+    int movementVec[2] = {0,0};
+    int normalizedDistanceOnX, normalizedDistanceOnY;
+
+    while (currentPos != goal) {
+        distance[0] = goal[0]-currentPos[0];
+        distance[1] = goal[1]-currentPos[1];
+        //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
+
+
+        //Pegar a maior distância e calcular a direção ideal (movement Vec)
+            if (distance[0] < 0) {
+                normalizedDistanceOnX =  distance[0]*(-1);
+            }
+            if (distance[1] < 0) {
+                normalizedDistanceOnY =  distance[1]*(-1);
+            }
+            if (normalizedDistanceOnX >= normalizedDistanceOnY) {
+                movementVec[0] = (distance[0]/distance[0]);
+                movementVec[1] = 0;
+            } else {
+                movementVec[0] = 0;
+                movementVec[1] = (distance[1]/distance[1]);
+            }
+        //Realmente andar
+    }
     return 0;
 }
 
@@ -159,7 +196,7 @@ int main()
     PrintMap(map);
     printf("\n");
 
-
+    PlotRoute(routeHead,map);
     return 0;
 }
 
