@@ -25,13 +25,29 @@ struct positionRegister {
 
 //Printar o mapa, retorna a quantidade de obstáculos?
 int PrintMap(map16 m) {
+    int i = 0;
+    for ( i = 0; i<16;i++){
+        int p = 0;
+		for ( p = 0; p<16;p++){
+			printf("%d ", m.grid[i][p]);
+		}
+		printf("\n");
+	}
     return 0;
 }
 
 //Preenche o mapa com obstáculos
 map16 PopulateMap (map16 m, int qty) {
+    //preenche o mapa de 0 antes de aplicar os obstáculos
+    int i = 0;
+	for (i = 0; i<16;i++){
+        int p = 0;
+		for (p = 0; p<16;p++){
+			m.grid[i][p] = 0;
+		}
+	}
 	srand(time(NULL)); //gera a seed do rng
-	for (int i = 0; i < qty; i++){
+	for (i = 0; i < qty; i++){
 		int x = rand()%17; //coordenada aleatoria x entre 0 e 16
 		int y = rand()%17; //coordenada aleatoria y entre 0 e 16
 		if (((x == m.startingX) && (y == m.startingY)) || ((x == m.goalX) && (y == m.goalY)) || (m.grid[x][y] == 1)) {
@@ -110,35 +126,22 @@ int PlotRoute(route* r, map16 m) {
 }
 
 
-
-
-
 //Loop Principal
 int main()
 {
     //Cria o cabeçário da rota.
     route* routeHead = (route*) malloc(sizeof(route));
     routeHead->next = NULL;
-	
+
 	//Cria o mapa
 	map16 map;
-	for (int i = 0; i<16;i++){
-		for (int p = 0; p<16;p++){
-			map.grid[i][p] = 0;
-		}
-	}
     //DEBUGS
    //printf("%d",AddPositionToRoute(routeHead,12,11));
    //printf("%d",AddPositionToRoute(routeHead,12,11));
    //printf("%d",sizeof(route));
    map = PopulateMap(map, 40);
+   PrintMap(map);
 
-   for (int i = 0; i<16;i++){
-		for (int p = 0; p<16;p++){
-			printf("%d ", map.grid[i][p]);
-		}
-		printf("\n");
-	}
     return 0;
 }
 
