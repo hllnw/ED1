@@ -151,28 +151,48 @@ int PlotRoute(route* r, map16 m) {
     int movementVec[2] = {0,0};
     int normalizedDistanceOnX, normalizedDistanceOnY;
 
+
     while (currentPos != goal) {
         distance[0] = goal[0]-currentPos[0];
         distance[1] = goal[1]-currentPos[1];
         //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
-
-
-        //Pegar a maior distância e calcular a direção ideal (movement Vec)
+        //checa (x+1,y)
+        if ((currentPos[0] < 16) && (currentPos[0] > 1)) {
+            if ( m.grid[currentPos[0]+1][currentPos[1]] == 1) {
+                distance[0] = -1; //redefine a prioridade de movimento do eixo x
+            }
+            if ( m.grid[currentPos[0]-1][currentPos[1]] == 1) {
+                distance[0] = 1; //redefine a prioridade do eixo x
+            }
+        }
+        //checa (x,y+1)
+        if ((currentPos[1] < 16) && (currentPos[1] > 1)) {
+            if ( m.grid[currentPos[0]][currentPos[1]+1] == 1) {
+                distance[1] = -1; //redefine a prioridade de movimento do eixo x
+            }
+            if ( m.grid[currentPos[0]][currentPos[1]-1] == 1) {
+                distance[1] = 1; //redefine a prioridade do eixo x
+            }
+        }
+            //normalizar as distancias (se negativo)
             if (distance[0] < 0) {
-                normalizedDistanceOnX =  distance[0]*(-1);
+                normalizedDistanceOnX = (distance[0]*(-1));
             }
             if (distance[1] < 0) {
-                normalizedDistanceOnY =  distance[1]*(-1);
+                normalizedDistanceOnY =  (distance[1]*(-1));
             }
+
+
+        //Pegar a maior distância, calcular a direcao ideal e mover
             if (normalizedDistanceOnX >= normalizedDistanceOnY) {
-                movementVec[0] = (distance[0]/distance[0]);
-                movementVec[1] = 0;
+                currentPos[0] = (normalizedDistanceOnX/distance[0]); //direcao no X a ser percorrida
             } else {
-                movementVec[0] = 0;
-                movementVec[1] = (distance[1]/distance[1]);
+                currentPos[1] = (normalizedDistanceOnY/distance[1]);
             }
-        //Realmente andar
+        //Registrar o movimento na rota
+            AddPositionToRoute(r,currentPos[0],currentPos[1]);
     }
+
     return 0;
 }
 
@@ -185,18 +205,17 @@ int main()
     routeHead->next = NULL;
 
     //debugzinho
-    AddPositionToRoute(routeHead,12,14);
-    AddPositionToRoute(routeHead,13,2);
-    AddPositionToRoute(routeHead,13,2);
-    AddPositionToRoute(routeHead,13,2);
-    PrintRoute(routeHead);
-
-    //Cria o mapa
     map16 map = PopulateMap(map, 40);
     PrintMap(map);
-    printf("\n");
 
     PlotRoute(routeHead,map);
+
+
+    //PrintRoute(routeHead);
+
+    //Cria o mapa
+
+
     return 0;
 }
 
