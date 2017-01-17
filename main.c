@@ -39,10 +39,10 @@ int PrintMap(map16 m) {
 //Preenche o mapa com obstáculos
 map16 PopulateMap (map16 m, int qty) {
     //hardcode das coordenadas einiciais e finais.
-    m.startingX = 5;
-    m.startingY = 5;
-    m.goalX = 15;
-    m.goalY = 15;
+    m.startingX = 14;
+    m.startingY = 14;
+    m.goalX = 5;
+    m.goalY = 5;
 
     //preenche o mapa de 0 antes de aplicar os obstáculos
     int i = 0;
@@ -109,7 +109,7 @@ int AddPositionToRoute(route* r,int x, int y) {
 //Leitor de rotas (exibir a estrutura no console)
 void PrintRoute(route* r) {
     printf("Impressao de rota: \n");
-    int i = 0;
+    //int i = 0;
     route* sweep;
     if (r->next != NULL) {
         sweep = r->next;
@@ -133,7 +133,7 @@ int CompareRoutes(route* r1, route* r2) {
 int WriteRouteToFile(route* r) {
     route *iterator = r;
     int data[2] = {0,0};
-    int count = 0;
+    //int count = 0;
     FILE *routeFile;
     routeFile = fopen("./routes/route.bin", "wb");
     if (!routeFile) {
@@ -165,55 +165,74 @@ int PlotRoute(route* r, map16 m) {
     int currentPos[2] = {m.startingX,m.startingY};
     int goal[2] = {m.goalX,m.goalY};
     int distance[2] = {0,0};
-    int movementVec[2] = {0,0};
-    int normalizedDistanceOnX, normalizedDistanceOnY;
+    int direction[2];
+    double norm[2];
+    printf("Ponto inicial: [%d][%d]\n", currentPos[0], currentPos[1]);
+    printf("Destino: [%d][%d]\n\n", goal[0], goal[1]);
+    //int movementVec[2] = {0,0};
+    //int normalizedDistanceOnX, normalizedDistanceOnY;
     //inclui o starting point na rota.
     AddPositionToRoute(r,currentPos[0],currentPos[1]);
     printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
 
-    while ((currentPos[0] != goal[0]) && (currentPos[1] != goal[1]))  {
-
+    while ((currentPos[0] < 15) && (currentPos[0] > 0) && (currentPos[1] < 15) && (currentPos[1] > 0)) {
+		direction[0] = 1;
+		direction[1] = 1; //inicializa as direcoes positivas
         distance[0] = goal[0]-currentPos[0];
         distance[1] = goal[1]-currentPos[1];
-        //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
-        //checa (x+1,y)
-        if ((currentPos[0] < 16) && (currentPos[0] > 1)) {
-            if ( m.grid[currentPos[0]+1][currentPos[1]] == 1) {
-                distance[0] = -1; //redefine a prioridade de movimento do eixo x
+        
+        //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.        
+        if (distance[0] < 0){
+			direction[0] = -1; //inverte a direcao pra olhar caso o objetivo esteja a esquerda do current
+		}
+        if (distance[1] < 0){
+			direction[1] = -1; //inverte a direcao pra olhar caso o objetivo esteja acima do current
+		}
+             
+        if ( m.grid[currentPos[0]+direction[0]][currentPos[1]] == 1) {
+                direction[0] *= -1; //inverte a direção no eixo x
             }
-            if ( m.grid[currentPos[0]-1][currentPos[1]] == 1) {
-                distance[0] = 1; //redefine a prioridade do eixo x
+        if ( m.grid[currentPos[0]+direction[0]][currentPos[1]] == 1) {
+                direction[0] = 0; //impossibilita o movimento em x
             }
-        }
-        //checa (x,y+1)
-        if ((currentPos[1] < 16) && (currentPos[1] > 1)) {
-            if ( m.grid[currentPos[0]][currentPos[1]+1] == 1) {
-                distance[1] = -1; //redefine a prioridade de movimento do eixo x
+        if ( m.grid[currentPos[0]][currentPos[1]+direction[1]] == 1) {
+                direction[1] *= -1; //inverte a direção no eixo y
             }
-            if ( m.grid[currentPos[0]][currentPos[1]-1] == 1) {
-                distance[1] = 1; //redefine a prioridade do eixo x
+        if ( m.grid[currentPos[0]][currentPos[1]+direction[1]] == 1) {
+                direction[1] = 0; //impossibilita o movimento em y
             }
-        }
-            //normalizar as distancias (se negativo)
-            if (distance[0] < 0) {
-                normalizedDistanceOnX = (distance[0]*(-1));
-            } else {
-                normalizedDistanceOnX = distance[0];
-            }
-            if (distance[1] < 0) {
-                normalizedDistanceOnY =  (distance[1]*(-1));
-            } else {
-                normalizedDistanceOnY = distance[1];
-            }
-        //Pegar a maior distância, calcular a direcao ideal e mover
-            if (normalizedDistanceOnX >= normalizedDistanceOnY) {
-                currentPos[0] = currentPos[0] + (distance[0]/normalizedDistanceOnX); //direcao no X a ser percorrida
-            } else {
-                currentPos[1] = currentPos[1] + (distance[1]/normalizedDistanceOnY);
-            }
+        norm[0] = sqrt(pow((distance[0]-direction[0]), 2) + pow((distance[1]), 2)); //possivel caminhada em x
+        norm[1] = sqrt(pow((distance[0]), 2) + pow((distance[1]-direction[1]), 2)); //possivel caminhada em y
+        printf("Direcao x: [%d]\n", direction[0]);
+        printf("Direcao y: [%d]\n", direction[1]);
+        printf("Norm x: [%f]\n", norm[0]);
+        printf("Norm y: [%f]\n", norm[1]);
+        if ((direction[0] != 0) && (direction[1] != 0)) {
+				if ((norm[0] <= norm[1]) && (currentPos[0] != goal[0])) {
+					currentPos[0] = currentPos[0] + direction[0]; //reduz a distancia em x
+				}
+				else if (currentPos[1] != goal[1]) {
+					currentPos[1] = currentPos[1] + direction[1]; //reduz a distancia em y
+				}
+		}
+		else if (direction[0] != 0) {
+			currentPos[0] = currentPos[0] + direction[0]; //unica opcao é andar em x
+		}
+		else if (direction[1] != 0) {
+			currentPos[1] = currentPos[1] + direction[1]; //unica opcao é andar em y
+		}
+		else {
+			printf("Nao ha para onde ir! Posicao final: [%d][%d] \n", currentPos[0],currentPos[1]);
+			break;
+		}
+        
         //Registrar o movimento na rota
             AddPositionToRoute(r,currentPos[0],currentPos[1]);
             printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
+        if ((currentPos[0] == goal[0]) && (currentPos[1] == goal[1])){
+			printf("Voce chegou ao destino!\n");
+			break;
+		}
     }
 
     return 0;
