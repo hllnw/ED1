@@ -84,7 +84,9 @@ route* CreateRoute(int x, int y, map16 m) {
 // Acrescenta uma posição a uma rota,
 //DEBUG: retorna 0 se a lista era vazia e 1 se a lista já continha elementos
 int AddPositionToRoute(route* r,int x, int y) {
+
     route* newPosition = (route*) malloc(sizeof(route));
+    newPosition->next = NULL;
     newPosition->position[0] = x;
     newPosition->position[1] = y;
 
@@ -128,8 +130,23 @@ int CompareRoutes(route* r1, route* r2) {
 }
 
 //Escrever rota no arquivo
-void WriteRouteToFile() {
-
+int WriteRouteToFile(route* r) {
+    route *iterator = r;
+    int data[2] = {0,0};
+    int count = 0;
+    FILE *routeFile;
+    routeFile = fopen("./routes/route.bin", "wb");
+    if (!routeFile) {
+        printf("\n Nao foi possivel inicializar o arquivo route.bin");
+        return 0; //erro
+    }
+    while (iterator->next != NULL) {
+        data[0] = iterator->position[0];
+        data[1] = iterator->position[1];
+        fwrite(data,1,sizeof(data),routeFile);
+        iterator = iterator->next;
+    }
+    return 1;
 }
 
 //Ler rota no arquivo
@@ -150,29 +167,55 @@ int PlotRoute(route* r, map16 m) {
     int distance[2] = {0,0};
     int movementVec[2] = {0,0};
     int normalizedDistanceOnX, normalizedDistanceOnY;
+    //inclui o starting point na rota.
+    AddPositionToRoute(r,currentPos[0],currentPos[1]);
+    printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
 
-    while (currentPos != goal) {
+    while ((currentPos[0] != goal[0]) && (currentPos[1] != goal[1]))  {
+
         distance[0] = goal[0]-currentPos[0];
         distance[1] = goal[1]-currentPos[1];
         //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
-
-
-        //Pegar a maior distância e calcular a direção ideal (movement Vec)
+        //checa (x+1,y)
+        if ((currentPos[0] < 16) && (currentPos[0] > 1)) {
+            if ( m.grid[currentPos[0]+1][currentPos[1]] == 1) {
+                distance[0] = -1; //redefine a prioridade de movimento do eixo x
+            }
+            if ( m.grid[currentPos[0]-1][currentPos[1]] == 1) {
+                distance[0] = 1; //redefine a prioridade do eixo x
+            }
+        }
+        //checa (x,y+1)
+        if ((currentPos[1] < 16) && (currentPos[1] > 1)) {
+            if ( m.grid[currentPos[0]][currentPos[1]+1] == 1) {
+                distance[1] = -1; //redefine a prioridade de movimento do eixo x
+            }
+            if ( m.grid[currentPos[0]][currentPos[1]-1] == 1) {
+                distance[1] = 1; //redefine a prioridade do eixo x
+            }
+        }
+            //normalizar as distancias (se negativo)
             if (distance[0] < 0) {
-                normalizedDistanceOnX =  distance[0]*(-1);
+                normalizedDistanceOnX = (distance[0]*(-1));
+            } else {
+                normalizedDistanceOnX = distance[0];
             }
             if (distance[1] < 0) {
-                normalizedDistanceOnY =  distance[1]*(-1);
-            }
-            if (normalizedDistanceOnX >= normalizedDistanceOnY) {
-                movementVec[0] = (distance[0]/distance[0]);
-                movementVec[1] = 0;
+                normalizedDistanceOnY =  (distance[1]*(-1));
             } else {
-                movementVec[0] = 0;
-                movementVec[1] = (distance[1]/distance[1]);
+                normalizedDistanceOnY = distance[1];
             }
-        //Realmente andar
+        //Pegar a maior distância, calcular a direcao ideal e mover
+            if (normalizedDistanceOnX >= normalizedDistanceOnY) {
+                currentPos[0] = currentPos[0] + (distance[0]/normalizedDistanceOnX); //direcao no X a ser percorrida
+            } else {
+                currentPos[1] = currentPos[1] + (distance[1]/normalizedDistanceOnY);
+            }
+        //Registrar o movimento na rota
+            AddPositionToRoute(r,currentPos[0],currentPos[1]);
+            printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
     }
+
     return 0;
 }
 
@@ -185,18 +228,18 @@ int main()
     routeHead->next = NULL;
 
     //debugzinho
-    AddPositionToRoute(routeHead,12,14);
-    AddPositionToRoute(routeHead,13,2);
-    AddPositionToRoute(routeHead,13,2);
-    AddPositionToRoute(routeHead,13,2);
-    PrintRoute(routeHead);
-
-    //Cria o mapa
-    map16 map = PopulateMap(map, 40);
+    map16 map = PopulateMap(map, 10);
     PrintMap(map);
-    printf("\n");
+
 
     PlotRoute(routeHead,map);
+
+
+    //PrintRoute(routeHead);
+
+    //Cria o mapa
+
+
     return 0;
 }
 
