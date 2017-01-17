@@ -84,7 +84,9 @@ route* CreateRoute(int x, int y, map16 m) {
 // Acrescenta uma posição a uma rota,
 //DEBUG: retorna 0 se a lista era vazia e 1 se a lista já continha elementos
 int AddPositionToRoute(route* r,int x, int y) {
+
     route* newPosition = (route*) malloc(sizeof(route));
+    newPosition->next = NULL;
     newPosition->position[0] = x;
     newPosition->position[1] = y;
 
@@ -128,8 +130,23 @@ int CompareRoutes(route* r1, route* r2) {
 }
 
 //Escrever rota no arquivo
-void WriteRouteToFile() {
-
+int WriteRouteToFile(route* r) {
+    route *iterator = r;
+    int data[2] = {0,0};
+    int count = 0;
+    FILE *routeFile;
+    routeFile = fopen("./routes/route.bin", "wb");
+    if (!routeFile) {
+        printf("\n Nao foi possivel inicializar o arquivo route.bin");
+        return 0; //erro
+    }
+    while (iterator->next != NULL) {
+        data[0] = iterator->position[0];
+        data[1] = iterator->position[1];
+        fwrite(data,1,sizeof(data),routeFile);
+        iterator = iterator->next;
+    }
+    return 1;
 }
 
 //Ler rota no arquivo
@@ -151,6 +168,9 @@ int PlotRoute(route* r, map16 m) {
     int movementVec[2] = {0,0};
     int normalizedDistanceOnX, normalizedDistanceOnY;
 
+    if (currentPos == goal) {
+        printf("goal!");
+    }
 
     while (currentPos != goal) {
         distance[0] = goal[0]-currentPos[0];
@@ -177,22 +197,24 @@ int PlotRoute(route* r, map16 m) {
             //normalizar as distancias (se negativo)
             if (distance[0] < 0) {
                 normalizedDistanceOnX = (distance[0]*(-1));
+            } else {
+                normalizedDistanceOnX = distance[0];
             }
             if (distance[1] < 0) {
                 normalizedDistanceOnY =  (distance[1]*(-1));
+            } else {
+                normalizedDistanceOnY = distance[1];
             }
-
-
         //Pegar a maior distância, calcular a direcao ideal e mover
             if (normalizedDistanceOnX >= normalizedDistanceOnY) {
-                currentPos[0] = (normalizedDistanceOnX/distance[0]); //direcao no X a ser percorrida
+                currentPos[0] = currentPos[0] + (distance[0]/normalizedDistanceOnX); //direcao no X a ser percorrida
             } else {
-                currentPos[1] = (normalizedDistanceOnY/distance[1]);
+                currentPos[1] = currentPos[1] +(distance[1]/normalizedDistanceOnY);
             }
         //Registrar o movimento na rota
             AddPositionToRoute(r,currentPos[0],currentPos[1]);
+            printf("Posicao Adicionada: [%d][%d]",currentPos[0],currentPos[1]);
     }
-
     return 0;
 }
 
@@ -205,8 +227,9 @@ int main()
     routeHead->next = NULL;
 
     //debugzinho
-    map16 map = PopulateMap(map, 40);
+    map16 map = PopulateMap(map, 0);
     PrintMap(map);
+
 
     PlotRoute(routeHead,map);
 
