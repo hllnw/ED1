@@ -167,12 +167,12 @@ int PlotRoute(route* r, map16 m) {
     int distance[2] = {0,0};
     int movementVec[2] = {0,0};
     int normalizedDistanceOnX, normalizedDistanceOnY;
+    //inclui o starting point na rota.
+    AddPositionToRoute(r,currentPos[0],currentPos[1]);
+    printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
 
-    if (currentPos == goal) {
-        printf("goal!");
-    }
+    while ((currentPos[0] != goal[0]) && (currentPos[1] != goal[1]))  {
 
-    while (currentPos != goal) {
         distance[0] = goal[0]-currentPos[0];
         distance[1] = goal[1]-currentPos[1];
         //Tentar checar as colisões antes de definir a direção ideal. Assim cortaria as possibilidades de movimento.
@@ -209,12 +209,13 @@ int PlotRoute(route* r, map16 m) {
             if (normalizedDistanceOnX >= normalizedDistanceOnY) {
                 currentPos[0] = currentPos[0] + (distance[0]/normalizedDistanceOnX); //direcao no X a ser percorrida
             } else {
-                currentPos[1] = currentPos[1] +(distance[1]/normalizedDistanceOnY);
+                currentPos[1] = currentPos[1] + (distance[1]/normalizedDistanceOnY);
             }
         //Registrar o movimento na rota
             AddPositionToRoute(r,currentPos[0],currentPos[1]);
-            printf("Posicao Adicionada: [%d][%d]",currentPos[0],currentPos[1]);
+            printf("Posicao Adicionada: [%d][%d] \n",currentPos[0],currentPos[1]);
     }
+
     return 0;
 }
 
@@ -227,7 +228,7 @@ int main()
     routeHead->next = NULL;
 
     //debugzinho
-    map16 map = PopulateMap(map, 0);
+    map16 map = PopulateMap(map, 10);
     PrintMap(map);
 
 
